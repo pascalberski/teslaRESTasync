@@ -1,8 +1,8 @@
-import axios from "axios";
-import * as http from "https";
+import axios from 'axios';
+import * as http from 'https';
 
-import { log4TSProvider } from "./config/LogConfig";
-const log = log4TSProvider.getLogger("object.tesla");
+import {log4TSProvider} from './config/LogConfig';
+const log = log4TSProvider.getLogger('object.tesla');
 
 /**
  * Implementation of the Tesla API endpoints
@@ -10,7 +10,7 @@ const log = log4TSProvider.getLogger("object.tesla");
 export class Tesla {
   private vehicleId: string;
   private refreshToken: string;
-  private accessToken = "";
+  private accessToken = '';
 
   /**
    * Create new Tesla object
@@ -27,22 +27,22 @@ export class Tesla {
    * @param {()} callback
    */
   public async generateAccessToken(callback: () => void) {
-    log.debug("Try to get new access token");
+    log.debug('Try to get new access token');
     axios
-      .post("https://auth.tesla.com/oauth2/v3/token", {
-        grant_type: "refresh_token",
-        client_id: "ownerapi",
-        refresh_token: this.refreshToken,
-        scope: "openid email offline_access",
-      })
-      .then((response) => {
-        this.accessToken = response.data.access_token;
-        log.debug(`new access token generated: ${this.accessToken.slice(0, 10)}...`);
-        callback();
-      })
-      .catch(function (error) {
-        log.error(error);
-      });
+        .post('https://auth.tesla.com/oauth2/v3/token', {
+          grant_type: 'refresh_token',
+          client_id: 'ownerapi',
+          refresh_token: this.refreshToken,
+          scope: 'openid email offline_access',
+        })
+        .then((response) => {
+          this.accessToken = response.data.access_token;
+          log.debug(`new access token generated: ${this.accessToken.slice(0, 10)}...`);
+          callback();
+        })
+        .catch(function(error) {
+          log.error(error);
+        });
   }
 
   /**
@@ -52,67 +52,62 @@ export class Tesla {
    */
   private async tryGetData(uri: string, callback: (response: any) => void) {
     this.sendGetRequest(
-      uri,
-      (result) => {
+        uri,
+        (result) => {
         // Handling status code 200 OK
-        console.log("result:");
-        console.log(result);
-        callback(result);
-      },
-      (statusCode) => {
+          callback(result);
+        },
+        (statusCode) => {
         // Handling errors
-        if (statusCode == 401) {
+          if (statusCode == 401) {
           // expired access token
-          this.handleError401(() => {
-            this.sendGetRequest(
-              uri,
-              (result) => {
-                // Handling status code 200 OK
-                console.log("result:");
-                console.log(result);
-              },
-              (statusCode) => {
-                // Handling errors
-                if (statusCode == 401) {
-                  // expired access token
-                  log.error("Error while sending command: " + statusCode);
-                } else if (statusCode == 408) {
-                  // tesla is asleep
-                  this.handleError408(0, () => {
-                    this.sendGetRequest(
-                      uri,
-                      (result) => {
-                        // Handling status code 200 OK
-                        console.log("result:");
-                        console.log(result);
-                      },
-                      (statusCode) => {
-                        // Handling errors
-                        log.error("Error while sending command: " + statusCode);
-                      }
-                    );
-                  });
-                }
-              }
-            );
-          });
-        } else if (statusCode == 408) {
+            this.handleError401(() => {
+              this.sendGetRequest(
+                  uri,
+                  (result) => {
+                    // Handling status code 200 OK
+                    callback(result);
+                  },
+                  (statusCode) => {
+                    // Handling errors
+                    if (statusCode == 401) {
+                      // expired access token
+                      log.error('Error while sending command: ' + statusCode);
+                    } else if (statusCode == 408) {
+                      // tesla is asleep
+                      this.handleError408(0, () => {
+                        this.sendGetRequest(
+                            uri,
+                            (result) => {
+                              // Handling status code 200 OK
+                              callback(result);
+                            },
+                            (statusCode) => {
+                              // Handling errors
+                              log.error('Error while sending command: ' + statusCode);
+                            },
+                        );
+                      });
+                    }
+                  },
+              );
+            });
+          } else if (statusCode == 408) {
           // tesla is asleep
-          this.handleError408(0, () => {
-            this.sendGetRequest(
-              uri,
-              (result) => {
-                // Handling status code 200 OK
-                console.log("result:");
-                console.log(result);
-              },
-              (statusCode) => {
-                log.error("Error while sending command: " + statusCode);
-              }
-            );
-          });
-        }
-      }
+            this.handleError408(0, () => {
+              this.sendGetRequest(
+                  uri,
+                  (result) => {
+                    // Handling status code 200 OK
+                    callback(result);
+                  },
+                  (statusCode) => {
+                    log.error('Error while sending command: ' + statusCode);
+                  },
+              );
+            });
+          }
+        },
     );
   }
 
@@ -124,46 +119,44 @@ export class Tesla {
    */
   private async trySendCmd(uri: string, body: any, callback: (response: any) => void) {
     this.sendPostRequest(
-      uri,
-      body,
-      (result) => {
+        uri,
+        body,
+        (result) => {
         // Handling status code 200 OK
-        console.log("result:");
-        console.log(result);
-        callback(result);
-      },
-      (statusCode) => {
+          callback(result);
+        },
+        (statusCode) => {
         // Handling errors
-        if (statusCode == 401) {
+          if (statusCode == 401) {
           // expired access token
-          this.handleError401(() => {
-            this.sendPostRequest(
-              uri,
-              body,
-              (result) => {
-                callback(result);
-              },
-              (code) => {
-                log.error("Error while sending command: " + code);
-              }
-            );
-          });
-        } else if (statusCode == 408) {
+            this.handleError401(() => {
+              this.sendPostRequest(
+                  uri,
+                  body,
+                  (result) => {
+                    callback(result);
+                  },
+                  (code) => {
+                    log.error('Error while sending command: ' + code);
+                  },
+              );
+            });
+          } else if (statusCode == 408) {
           // tesla is asleep
-          this.handleError408(0, () => {
-            this.sendPostRequest(
-              uri,
-              body,
-              (result) => {
-                callback(result);
-              },
-              (code) => {
-                log.error("Error while sending command: " + code);
-              }
-            );
-          });
-        }
-      }
+            this.handleError408(0, () => {
+              this.sendPostRequest(
+                  uri,
+                  body,
+                  (result) => {
+                    callback(result);
+                  },
+                  (code) => {
+                    log.error('Error while sending command: ' + code);
+                  },
+              );
+            });
+          }
+        },
     );
   }
 
@@ -176,18 +169,18 @@ export class Tesla {
    */
   private async sendPostRequest(uri: string, body: any, callback: (response: any) => void, errorCallback: (statusCode: number | undefined) => void) {
     axios
-      .post(`https://owner-api.teslamotors.com/api/1/vehicles/${this.vehicleId}/${uri}`, body, {
-        headers: {
-          Authorization: "Bearer " + this.accessToken,
-          "Content-Type": "application/json",
-        },
-      })
-      .then((response) => {
-        callback(response.data.response);
-      })
-      .catch((error) => {
-        errorCallback(error.response.status);
-      });
+        .post(`https://owner-api.teslamotors.com/api/1/vehicles/${this.vehicleId}/${uri}`, body, {
+          headers: {
+            'Authorization': 'Bearer ' + this.accessToken,
+            'Content-Type': 'application/json',
+          },
+        })
+        .then((response) => {
+          callback(response.data.response);
+        })
+        .catch((error) => {
+          errorCallback(error.response.status);
+        });
   }
 
   /**
@@ -197,8 +190,8 @@ export class Tesla {
    */
   private async handleError408(i: number, callback: () => void) {
     log.debug(`WakeUp (${i})`);
-    this.trySendCmd("wake_up", "", async (result) => {
-      if (result.state == "online") {
+    this.trySendCmd('wake_up', '', async (result) => {
+      if (result.state == 'online') {
         callback();
         return;
       } else {
@@ -211,7 +204,7 @@ export class Tesla {
   /**
    * Helper method
    * @param {number} ms
-   * @returns
+   * @return {Promise}
    */
   private sleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -233,37 +226,34 @@ export class Tesla {
    */
   private async sendGetRequest(uri: string, callback: (response: any) => void, errorCallback: (statusCode: number | undefined) => void) {
     const options = {
-      host: "owner-api.teslamotors.com",
+      host: 'owner-api.teslamotors.com',
       port: 443,
       path: `/api/1/vehicles/${this.vehicleId}/${uri}`,
-      method: "GET",
+      method: 'GET',
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.accessToken}`,
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.accessToken}`,
       },
     };
 
-    let result = "";
+    let result = '';
     const req = http.request(options, (res) => {
-      console.log(res.statusCode);
       if (res.statusCode != 200) {
         errorCallback(res.statusCode);
         return;
       }
 
-      res.setEncoding("utf8");
-      res.on("data", (chunk) => {
+      res.setEncoding('utf8');
+      res.on('data', (chunk) => {
         result += chunk;
       });
 
-      res.on("end", () => {
-        // log.debug('end');
-        // console.log(result);
+      res.on('end', () => {
         callback(result);
       });
     });
 
-    req.on("error", (e) => {
+    req.on('error', (e) => {
       log.error(e.toString());
     });
 
@@ -271,12 +261,56 @@ export class Tesla {
   }
 
   /**
-   * Return the charge state
+   * Returns the charge state
    * @description https://www.teslaapi.io/vehicles/state-and-settings#charge-state
    * @param {(any)} callback
    */
   public async getChargeData(callback: (response: any) => void): Promise<void> {
-    this.tryGetData("data_request/charge_state", (response) => {
+    this.tryGetData('data_request/charge_state', (response) => {
+      callback(response);
+    });
+  }
+
+  /**
+   * Returns all vehicle data
+   * @description https://www.teslaapi.io/vehicles/state-and-settings#vehicle-data
+   * @param {(any)} callback
+   */
+  public async getVehicleData(callback: (response: any) => void): Promise<void> {
+    this.tryGetData('vehicle_data', (response) => {
+      callback(response);
+    });
+  }
+
+  /**
+   * Start charging
+   * @description https://www.teslaapi.io/vehicles/commands#start-charging
+   * @param {(any)} callback
+   */
+  public async startCharging(callback: (response: any) => void): Promise<void> {
+    this.trySendCmd('command/charge_start', '', (response) => {
+      callback(response);
+    });
+  }
+
+  /**
+   * Stop charging
+   * @description https://www.teslaapi.io/vehicles/commands#stop-charging
+   * @param {(any)} callback
+   */
+  public async stopCharging(callback: (response: any) => void): Promise<void> {
+    this.trySendCmd('command/charge_stop', '', (response) => {
+      callback(response);
+    });
+  }
+
+  /**
+   * Sets the charging ampere
+   * @param {number} amps
+   * @param {(any)} callback
+   */
+  public async setChargingAmps(amps: number, callback: (response: any) => void): Promise<void> {
+    this.trySendCmd('command/set_charging_amps', {charging_amps: amps}, (response) => {
       callback(response);
     });
   }
