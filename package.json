@@ -1,8 +1,24 @@
 {
   "name": "teslarest",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "description": "",
   "main": "./out/main.js",
+  "types": "./out/main.d.ts",
+  "type": "commonjs",
+  "files": ["out/main.js", "out/main.d.ts", "out/config/LogConfig.js", "out/config/LogConfig.d.ts", "README.md", "package.json"],
+  "author": {
+    "name": "Pascal Berski",
+    "url": "https://github.com/pascalberski"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pascalberski/teslaRESTasync.git"
+  },
+  "license": "ISC",
+  "homepage": "https://github.com/pascalberski/teslaRESTasync#readme",
+  "bugs": {
+    "url": "https://github.com/pascalberski/teslaRESTasync/issues"
+  },
   "scripts": {
     "lint": "eslint ./src/**/* --fix",
     "build": "eslint ./src/**/* --fix && tsc",
@@ -10,8 +26,6 @@
     "test": "npm run build && node -e \"require('./out/test.js').test()\"",
     "only-test": "node -e \"require('./out/test.js').test()\""
   },
-  "author": "Pascal Berski",
-  "license": "ISC",
   "devDependencies": {
     "@types/node": "^18.15.11",
     "@typescript-eslint/eslint-plugin": "^5.17.0",
